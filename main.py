@@ -38,7 +38,7 @@ import warnings
 
 # ----------------------------------------------------------------------
 # Control panel
-n_observed = 200
+n_observed = 50
 n_particles = 10**3
 
 g = 2**0.5                   # Subordinator gamma hyperparameter
@@ -62,5 +62,5 @@ marginal_likelihood = run_particle_filter(subordinator=gamma, times=times, y_s=y
 
 print(f'Marginal likelihood = {round(marginal_likelihood, 1)}')
 
-grid_search(times, y_s, gammas=[1.41], vs=[0.2, 2, 10],
+grid_search(times, y_s, gammas=[0.01, 0.14, 1.41, 10, 100], vs=[0.02, 0.2, 2, 10, 100],
             noise_sd=noise_sd, sigma_w=sigma_w, use_prior=True)

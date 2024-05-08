@@ -32,6 +32,7 @@ class ParticleFilter:
         self.sum_exp_bits = np.zeros(self.N)  # Particle likelihood component
         self.M = None  # Number of time indices
         self.rng = np.random.default_rng(seed=seed)
+        self.ML = 0  # Log marginal likelihood (may be incorrect for sigma_w known)
 
     def initialise(self):
         """Initialise weights and Kalman parameters."""
@@ -126,6 +127,10 @@ class ParticleFilter:
                 else:
                     self.omegas[i] = inc_likelihood
 
+                # Marginal Likelihood update
+                # log ML += log p(y_t| y_1:t-1))
+                self.ML += scipy.special.logsumexp(self.omegas) - np.log(self.N)
+
             # Normalise
             self.unnormalised = self.omegas
             self.omegas -= np.nanmax(self.omegas)  # Ensure there is no overflow
@@ -167,8 +172,9 @@ class ParticleFilter:
                                          - self.sum_exp_bits[i] / self.sigma_w**2)
         else:
             for i in range(self.N):
-                out += ps[i] * (self.sum_log_bits[i] + self.alpha_w * np.log(self.beta_w)
-                                         - (self.alpha_w + self.N/2) * np.log(self.beta_w - self.sum_exp_bits[i])
-                                         + scipy.special.loggamma(self.N/2 + self.alpha_w)
-                                         - scipy.special.loggamma(self.alpha_w))
-        return out
+                out += ps[i] * self.unnormalised[i]
+                # out += ps[i] * (self.sum_log_bits[i] + self.alpha_w * np.log(self.beta_w)
+                #                          - (self.alpha_w + self.N/2) * np.log(self.beta_w - self.sum_exp_bits[i])
+                #                          + scipy.special.loggamma(self.N/2 + self.alpha_w)
+                #                          - scipy.special.loggamma(self.alpha_w))
+        return self.ML
