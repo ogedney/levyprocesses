@@ -10,7 +10,7 @@ class ParticleFilter:
     """Marginalised particle filter for NVM an NsigmaM processes observed in Gaussian noise.
     mu_w is incorporated into the state vector, sigma_w is factorised out."""
 
-    def __init__(self, subordinator, N=10 ** 3, sigma_w=None, mu_mu_w=0, Kw=1, Kv=0.1, alpha_w=10**-6, beta_w=10**-6, is_NVM=True, seed=None):
+    def __init__(self, subordinator, N=10 ** 3, sigma_w=None, mu_mu_w=0, Kw=1, Kv=0.1, alpha_w=10**-6, beta_w=10**-6, is_NVM=True, seed=None, show_bar=True):
         # Parameters
         self.N = N  # Number of particles
         self.sigma_w = sigma_w  # Sigma_w (None for model with prior, positive real otherwise)
@@ -21,6 +21,7 @@ class ParticleFilter:
         self.alpha_w = alpha_w  # Inverse Gamma sigma_w prior parameter
         self.beta_w = beta_w  # Inverse Gamma sigma_w prior parameter
         self.is_NVM = is_NVM  # Bool for whether model is NVM (True) or NsigmaM (false)
+        self.disable_bar = not show_bar  # Bool for whether to show progress bar
 
         # Internal variables
         self.omegas = np.zeros(self.N)  # Particle importance weights
@@ -48,7 +49,7 @@ class ParticleFilter:
         y_values = np.insert(y_values, 0, 0)  # Start from y = 0
         inferred_means = np.zeros(len(times))
 
-        for j in tqdm(range(1, len(times)), colour='WHITE', desc='Timesteps', ncols=150):#, position=1, leave=False):
+        for j in tqdm(range(1, len(times)), colour='WHITE', desc='Timesteps', ncols=150, disable=self.disable_bar):
             # Resample
             inds = self.rng.choice(self.N, size=self.N, p=self.omegas)  # Sample with replacement
 
