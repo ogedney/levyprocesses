@@ -69,7 +69,7 @@ def grid_search(ts, ys, gammas, vs, noise_sd=0.1, sigma_w=1, use_prior=True):
             print(f'{j + i * len(gammas)} / {len(vs) * len(gammas)}')
             gamma = GammaProcess(gamma=g, v=v)
             ml = run_particle_filter(subordinator=gamma, times=ts, y_s=ys, noise_sd=noise_sd, sigma_w=sigma_w,
-                                     use_prior=use_prior, show_plots=False)
+                                     use_prior=use_prior, show_plots=False, n_particles=10**4)
             print(f'\n v = {v}, gamma = {g}, ML = {ml}')
             likelihoods[i, j] = ml
 

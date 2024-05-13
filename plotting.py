@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 import math
 from scipy.stats import norm, invgamma,t
+from scipy.special import gamma
 from processes import *
 
 
@@ -11,8 +12,8 @@ def plot_n_paths(model, n):
     for i in range(n):
         y, t = model.get_time_series()
         plt.plot(t, y)
-    # plt.title(f'{n} {model} sample paths')#, wrap=True, pad=6)
-    plt.title('10 NσM (tempered stable process subordinator) sample paths')
+    plt.title(f'{n} {model} sample paths')#, wrap=True, pad=6)
+    # plt.title('10 NσM (tempered stable process subordinator) sample paths')
     plt.xlabel('t')
     plt.ylabel('X(t)')
     plt.show()
@@ -34,15 +35,16 @@ def plot_hist_of_n(model, n, bins=40):
 
 
 def generate_and_save_mixture_samples():
-    nvm = NVMProcess(subordinator=GammaProcess(), mu_w=1, sigma_w=1)
+    sub = TemperedStableProcess()
+    nvm = NVMProcess(subordinator=sub, mu_w=1, sigma_w=1)
     NVM_vals = nvm.get_n_final_values(10 ** 5)
     with open('nvm_vals.pickle', 'wb') as f:
         pickle.dump(NVM_vals, f, pickle.HIGHEST_PROTOCOL)
 
-    # nsm = NsigmaMProcess(subordinator=GammaProcess(), mu_w=0, sigma_w=1)
-    # NSM_vals = nsm.get_n_final_values(10 ** 5)
-    # with open('nsm_vals.pickle', 'wb') as f:
-    #     pickle.dump(NSM_vals, f, pickle.HIGHEST_PROTOCOL)
+    nsm = NsigmaMProcess(subordinator=sub, mu_w=1, sigma_w=1)
+    NSM_vals = nsm.get_n_final_values(10 ** 5)
+    with open('nsm_vals.pickle', 'wb') as f:
+        pickle.dump(NSM_vals, f, pickle.HIGHEST_PROTOCOL)
 
 
 def plot_mixture_samples():
@@ -52,28 +54,28 @@ def plot_mixture_samples():
     with open('nsm_vals.pickle', 'rb') as f:
         nsm_vals = pickle.load(f)
 
-    bins = np.linspace(-7.5, 7.5, 150)
+    bins = np.linspace(-3, 8, 150)
 
     plt.hist(nvm_vals, bins, alpha=0.7, label='NVM', density=True)
-    # plt.hist(nsm_vals, bins, alpha=0.7, label='NσM', density=True)
-    # plt.legend(loc='upper right')
+    plt.hist(nsm_vals, bins, alpha=0.7, label='NσM', density=True)
+    plt.legend(loc='upper right')
 
-    # plt.title('Histograms of 10^5 NVM and NσM values at t = 1 (μ_w = 0, σ_w = 1)', wrap=True)
-
-    mu_w = 1
-    sigma_w = 1
-    lambda_ = 1
-    gamma = 2
-    M_1 = gamma / lambda_
-    M_2 = gamma * 2 / lambda_ ** 2
-    x = np.linspace(-3, 20, 10 ** 4)
-    plt.plot(x, norm.pdf(x, loc=mu_w * M_1, scale=(mu_w ** 2 * M_2 + sigma_w ** 2 * M_1)**0.5),
-             label='Normal survival function')
-
-    plt.xlabel('Final value')
-    plt.ylabel('Normalised sample counts')
-    # plt.ylim(0, 0.3)
+    plt.title('Histograms of 10^5 NVM and NσM values at t = 1 (μ_w = 1, σ_w = 1)', wrap=True)
     plt.show()
+    # mu_w = 1
+    # sigma_w = 1
+    # lambda_ = 1
+    # gamma = 2
+    # M_1 = gamma / lambda_
+    # M_2 = gamma * 2 / lambda_ ** 2
+    # x = np.linspace(-3, 20, 10 ** 4)
+    # plt.plot(x, norm.pdf(x, loc=mu_w * M_1, scale=(mu_w ** 2 * M_2 + sigma_w ** 2 * M_1)**0.5),
+    #          label='Normal survival function')
+    #
+    # plt.xlabel('Final value')
+    # plt.ylabel('Normalised sample counts')
+    # # plt.ylim(0, 0.3)
+    # plt.show()
     
 
 def get_samples_survival_series(final_values):
@@ -85,7 +87,7 @@ def get_samples_survival_series(final_values):
     return x, y
 
 
-def plot_tail_comparison_nvm():
+def plot_tail_comparison_nvm_gamma():
     with open('nvm_vals.pickle', 'rb') as f:
         nvm_vals = pickle.load(f)
 
@@ -119,7 +121,7 @@ def plot_tail_comparison_nvm():
     plt.show()
 
 
-def plot_bound_with_s_nvm():
+def plot_bound_with_s_nvm_gamma():
     """Functions to help with plotting variation of bound with s"""
 
     s = np.linspace(0, 1.5, 200)
@@ -173,6 +175,84 @@ def plot_tail_comparison_nsm_mu_w_0():
         n += 2
     print(const)
 
+    plt.show()
+
+
+def plot_tail_comparison_nvm_TS():
+    with open('nvm_vals.pickle', 'rb') as f:
+        nvm_vals = pickle.load(f)
+
+    x, y = get_samples_survival_series(nvm_vals)
+
+    plt.plot(x, y, label='Surviving samples')
+
+    s = 0.5
+    mu_w = 1
+    sigma_w = 1
+    alpha = 0.5
+    beta = 1
+    C = 1
+
+    N = 100
+    sum_ = 0
+    for n in range(1, N):
+        sum_ += ((s*mu_w + 0.5*s**2*sigma_w**2)/beta)**n * gamma(n-alpha) / gamma(n+1)
+        print(sum_)
+
+    x = np.linspace(-3, 20, 10 ** 4)
+    y = np.exp(-s * x + C * beta ** alpha * sum_)
+    plt.plot(x, y, label=f'Tail probability bound (s={s})')
+
+    M_1 = C * gamma(1-alpha) / beta ** (1-alpha)
+    M_2 = C * gamma(2-alpha) / beta ** (2-alpha)
+    plt.plot(x, norm.sf(x, loc=mu_w*M_1, scale=(mu_w**2*M_2+sigma_w**2*M_1)**0.5), label='Normal survival function')
+
+    plt.ylim(10**-5, 1)
+    plt.yscale('log')
+    # plt.ylim(0, 0.01)
+    plt.xlim(4, 14)
+    plt.ylabel('Tail probability')
+    plt.xlabel('Final value')
+    plt.legend()
+    # plt.title('Plot of surviving samples against final value for NVM process with gamma process subordinator')
+    plt.show()
+
+
+def moment_sum_TS(s):
+    mu_w = 1
+    sigma_w = 1
+    alpha = 0.5
+    beta = 1
+    C = 1
+    N = 150
+    sum_ = 0
+    for n in range(1, N):
+        sum_ += ((s * mu_w + 0.5 * s ** 2 * sigma_w ** 2) / beta) ** n * gamma(n - alpha) / gamma(n + 1)
+    return sum_
+
+
+def plot_bound_with_s_nvm_TS():
+    """Functions to help with plotting variation of bound with s"""
+
+    s = np.linspace(0, 0.73, 50)
+    mu_w = 1
+    sigma_w = 1
+    alpha = 0.5
+    beta = 1
+    C = 1
+    alphas = [6, 9, 12]
+    ys = [[], [], []]
+    for j in range(len(ys)):
+        for i in range(len(s)):
+            ys[j].append(np.exp(-s[i] * alphas[j] + C * beta ** alpha * moment_sum_TS(s[i])))
+
+    for j in range(len(ys)):
+        plt.plot(s, ys[j], label=f'X = {alphas[j]}')
+    plt.yscale('log')
+    plt.xlabel('s')
+    plt.ylabel('Tail probability bound')
+    plt.legend()
+    plt.ylim(10**-3, 1.2)
     plt.show()
 
 

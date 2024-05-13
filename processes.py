@@ -5,7 +5,7 @@ class JumpProcess:
     def get_n_final_values(self, n, time_interval=1):
         out = []
         for i in range(n):
-            jumps, times = self.generate_jumps(time_interval=time_interval)
+            jumps, times = self.generate_jumps()#time_interval=time_interval)
             out.append(sum(jumps))
             if i % 500 == 0 and i != 0:
                 print(f'{i}/{n}')
@@ -91,9 +91,9 @@ class StableProcess(JumpProcess):
 
 
 class TemperedStableProcess(JumpProcess):
-    def __init__(self, alpha, beta, C):
+    def __init__(self, alpha=0.5, beta=1, C=1):
         """
-        Compared to Barndorff-Nielson
+        Compared to Barndorff-Nielson  - incorrect?
         alpha = kappa
         beta = gamma**(1/kappa)/2.0
         C  = delta * (2 ** kappa) * kappa * (1 / gammafnc(1 - kappa))
