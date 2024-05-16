@@ -43,36 +43,45 @@ n_particles = 10**3
 
 g = 2**0.5                   # Subordinator gamma hyperparameter
 v = 2                  # Subordinator v hyperparameter
-mu_w = -1                # NVM mu_w parameter
-sigma_w = 2             # NVM sigma_w parameter
-noise_sd = 0.1         # Noise standard deviation
+mu_w = 1                # NVM mu_w parameter
+sigma_w = 1             # NVM sigma_w parameter
+noise_sd = 0.2         # Noise standard deviation
 
 use_prior = True        # Use sigma_w^2 prior
 # ----------------------------------------------------------------------
 
-# gamma = GammaProcess(gamma=g, v=v)
+gamma = GammaProcess(gamma=g, v=v)
 # gamma = TemperedStableProcess()
 # plot_n_paths(gamma, 10)
 
 # generate_and_save_mixture_samples()
 # plot_mixture_samples()
-plot_tail_comparison_nvm_TS()
+# plot_tail_comparison_nvm_TS()
 # plot_bound_with_s_nvm_TS()
 
-# nvm = NVMProcess(subordinator=gamma, mu_w=mu_w, sigma_w=sigma_w)
-#
-# y, t, y_s, times = get_observations(process=nvm, noise_sd=noise_sd, n_observed=n_observed)
+nvm = NVMProcess(subordinator=gamma, mu_w=mu_w, sigma_w=sigma_w)
+
+y, t, y_s, times = get_observations(process=nvm, noise_sd=noise_sd, n_observed=n_observed, load_data=True)
 
 # [8202.779762878426, 8118.994536975091, 8127.350990219695, 8143.481871596601, 8260.654210902381, 8165.107988942243,
 # 8279.480686052517, 8260.595306346833, 8305.05922390013, 8317.305209209157]
 
-# marginal_likelihood = run_particle_filter(subordinator=gamma, times=times, y_s=y_s, t=t, y=y, noise_sd=noise_sd,
-#                                           sigma_w=sigma_w, use_prior=use_prior, n_particles=n_particles,
-#                                           show_plots=True)
-#
-# print(f'Marginal likelihood = {round(marginal_likelihood, 1)}')
-#
+marginal_likelihood = run_particle_filter(subordinator=gamma, times=times, y_s=y_s, t=t, y=y, noise_sd=noise_sd,
+                                          sigma_w=sigma_w, use_prior=use_prior, n_particles=n_particles,
+                                          show_plots=True, nvm=True)
+
+print(f'Marginal likelihood = {round(marginal_likelihood, 1)}')
+
 # grid_search(times, y_s, gammas=[0.01, 0.14, 1.41, 10, 100], vs=[0.02, 0.2, 2, 10, 100],
 #             noise_sd=noise_sd, sigma_w=sigma_w, use_prior=True)
+
+with open('PMCMC_in.pickle', 'wb') as f:
+    pickle.dump((times, y_s), f, pickle.HIGHEST_PROTOCOL)
+
+gammas = [2**0.5]
+vs = [2]
+Kvs = [0.04]
+with open('PMCMC_out.pickle', 'wb') as f:
+    pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
 
 # gs, vs, Kvs = PMCMC(times, y_s)

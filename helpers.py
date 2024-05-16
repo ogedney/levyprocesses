@@ -28,7 +28,7 @@ def get_observations(process, noise_sd=0.1, n_observed=200, seed=None, save_data
 
 
 def run_particle_filter(subordinator, times, y_s, t=None, y=None, noise_sd=0.1, sigma_w=1, Kv=None,
-                        use_prior=True, n_particles=10 ** 3, show_plots=True, show_bar=True):
+                        use_prior=True, n_particles=10 ** 3, show_plots=True, show_bar=True, nvm=True):
     """Run particle filter.
     times, y_s are observations
     t, y are original time series
@@ -39,7 +39,7 @@ def run_particle_filter(subordinator, times, y_s, t=None, y=None, noise_sd=0.1, 
         sigma_w = None
 
     p_filter = ParticleFilter(subordinator=subordinator, N=n_particles, Kv=Kv, Kw=1, mu_mu_w=0, sigma_w=sigma_w,
-                              show_bar=show_bar)
+                              show_bar=show_bar, is_NVM=nvm)
     out = p_filter.run(times, y_s)
 
     omegas, alphas_dash, betas_dash, ms, cs = p_filter.get_post_parameters()
@@ -69,7 +69,7 @@ def grid_search(ts, ys, gammas, vs, noise_sd=0.1, sigma_w=1, use_prior=True):
             print(f'{j + i * len(gammas)} / {len(vs) * len(gammas)}')
             gamma = GammaProcess(gamma=g, v=v)
             ml = run_particle_filter(subordinator=gamma, times=ts, y_s=ys, noise_sd=noise_sd, sigma_w=sigma_w,
-                                     use_prior=use_prior, show_plots=False, n_particles=10**4)
+                                     use_prior=use_prior, show_plots=False, n_particles=10**3)
             print(f'\n v = {v}, gamma = {g}, ML = {ml}')
             likelihoods[i, j] = ml
 

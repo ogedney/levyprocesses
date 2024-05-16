@@ -128,9 +128,12 @@ class ParticleFilter:
                 else:
                     self.omegas[i] = inc_likelihood
 
-                # Marginal Likelihood update
-                # log ML += log p(y_t| y_1:t-1))
-                self.ML += scipy.special.logsumexp(self.omegas) - np.log(self.N)
+            # multiply by omega_t-1 = 1/N
+            self.omegas -= np.log(self.N)
+
+            # Marginal Likelihood update
+            # log ML += log p(y_t| y_1:t-1))
+            self.ML += scipy.special.logsumexp(self.omegas) - np.log(self.N)
 
             # Normalise
             self.unnormalised = self.omegas

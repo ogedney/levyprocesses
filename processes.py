@@ -19,7 +19,7 @@ class JumpProcess:
             y[t > times[i]] += jumps[i]
         return y, t
 
-    def generate_jumps(self, eps=10 ** -10, time_interval=1):
+    def generate_jumps(self, eps=10 ** -6, time_interval=1):
         gamma_i = 0
         jumps = []
         while True:

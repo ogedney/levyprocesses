@@ -292,20 +292,24 @@ def plot_particles(times, history, observed, t, y_true, log=True):
     plt.pcolormesh(X, Y, H, cmap='Greens')
     plt.plot(t, y_true, label='True process', color='blue')
     plt.scatter(times, observed, label='Observed process', color='orange')
+    plt.xlabel('t')
+    plt.ylabel('X')
     plt.legend()
     plt.title('Log histogram values')
     plt.show()
 
 
-def plot_sigma_w_2_posterior(omegas, alphas_dash, betas_dash, n_points=100):
-    x = np.linspace(0, 5, n_points)
+def plot_sigma_w_2_posterior(omegas, alphas_dash, betas_dash, n_points=500):
+    x = np.linspace(0, 4, n_points)
     y = np.zeros(n_points)
     for i in range(len(omegas)):
         y += omegas[i] * invgamma.pdf(x, a=alphas_dash[i], scale=betas_dash[i])
     # y += invgamma.pdf(x, a=alphas_dash[0], scale=betas_dash[0])
     plt.plot(x, y)
-    plt.title(f'mean alpha\' = {np.mean(alphas_dash[0])}, mean beta\' = {np.mean(betas_dash[0])}')
-    plt.xlabel('sigma_w^2')
+    # plt.title(f'mean alpha\' = {np.mean(alphas_dash[0])}, mean beta\' = {np.mean(betas_dash[0])}')
+    # plt.title('Posterior distribution of mu_w')
+    plt.xlabel('$\sigma_w^2$')
+    plt.ylabel('$p(\sigma_w^2 | y_{t_{1:M}})$')
     plt.show()
 
 
@@ -320,14 +324,15 @@ def plot_sigma_w_2_likelihood(omegas, sum_F_s, E_s, N, n_points=100):
     plt.show()
 
 
-def plot_mu_w_posterior(omegas, m_s, c_s, alphas_dash, betas_dash, n_points=100):
+def plot_mu_w_posterior(omegas, m_s, c_s, alphas_dash, betas_dash, n_points=500):
     x = np.linspace(-3, 3, n_points)
     y = np.zeros(n_points)
     for i in range(len(omegas)):
         y += omegas[i] * t.pdf((alphas_dash[i] / (betas_dash[i]*c_s[i]))**0.5 * (x - m_s[i]), df=2*alphas_dash[i])
     plt.plot(x, y)
-    plt.title(f'Posterior distribution of mu_w. Mean m = {np.mean(m_s)}')
-    plt.xlabel('mu_w')
+    # plt.title(f'Posterior distribution of mu_w. Mean m = {np.mean(m_s)}')
+    plt.xlabel('$\mu_w$')
+    plt.ylabel('$p(\mu_w | y_{t_{1:M}})$')
     plt.show()
 
 
