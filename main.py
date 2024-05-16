@@ -84,16 +84,31 @@ with open('PMCMC_in.pickle', 'rb') as f:
 # with open('PMCMC_out.pickle', 'wb') as f:
 #     pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
 
-# with open('PMCMC_out.pickle', 'rb') as f:
-#     gammas, vs, Kvs = pickle.load(f)
-#
-# plt.hist(gammas)
-# plt.show()
-#
-# plt.hist(vs)
-# plt.show()
-#
-# plt.hist(Kvs)
-# plt.show()
+with open('PMCMC_out.pickle', 'rb') as f:
+    gammas, vs, Kvs = pickle.load(f)
 
-gs, vs, Kvs = PMCMC(times, y_s)
+bins = np.logspace(-1, 1, 20)
+plt.hist(gammas, bins=bins, density=True)
+plt.plot(g*np.ones(100), np.linspace(0, 0.6, 100))
+plt.xscale('log')
+plt.xlabel('$\gamma$')
+plt.ylabel('Histogram density')
+plt.show()
+
+bins = np.logspace(-1, 2, 20)
+plt.hist(vs, bins=bins, density=True)
+plt.plot(v*np.ones(100), np.linspace(0, 0.2, 100))
+plt.xscale('log')
+plt.xlabel('$\\nu$')
+plt.ylabel('Histogram density')
+plt.show()
+
+bins = np.logspace(-3, 0, 20)
+plt.hist(Kvs, bins=bins, density=True)
+plt.plot(0.04*np.ones(100), np.linspace(0, 20, 100))
+plt.xscale('log')
+plt.xlabel('$\kappa_v$')
+plt.ylabel('Histogram density')
+plt.show()
+
+# gs, vs, Kvs = PMCMC(times, y_s)
