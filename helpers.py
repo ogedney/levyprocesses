@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-from scipy.stats import invgamma
+from scipy.stats import invgamma, lognorm
 from plotting import *
 from filter import *
 
@@ -94,20 +94,25 @@ def PMCMC(times, y_s, N_samples=1000):
 
     times, y_s are observations"""
 
+    with open('PMCMC_out.pickle', 'rb') as f:
+        gammas, vs, Kvs = pickle.load(f)
+
     # Initialise parameters
-    gamma_prev = 1
-    v_prev = 1
-    Kv_prev = 0.01
+    gamma_prev = gammas[-1]
+    v_prev = vs[-1]
+    Kv_prev = Kvs[-1]
     lg_gamma_prev = np.log(gamma_prev)
     lg_v_prev = np.log(v_prev)
     lg_Kv_prev = np.log(Kv_prev)
     subordinator = GammaProcess(gamma=gamma_prev, v=v_prev)
-    gammas = []
-    vs = []
-    Kvs = []
-    alpha = 10 ** -5  # Parameters for inverse gamma prior
-    beta = 10 ** -5
-    step_size = 0.1 * np.log(10)
+    # gammas = []
+    # vs = []
+    # Kvs = []
+    alpha = 0.4  # Parameters for inverse gamma prior
+    beta = 1
+    scale_kv = 0.04*2
+    s_kv = 0.5*np.log(10)
+    step_size = 0.33 * np.log(10)
     N_accepted = 0
 
     # Initial log ML
@@ -117,7 +122,7 @@ def PMCMC(times, y_s, N_samples=1000):
     # Initial log prior
     prior_prev = invgamma.logpdf(gamma_prev, alpha, loc=0, scale=beta) + \
                  invgamma.logpdf(v_prev, alpha, loc=0, scale=beta) + \
-                 invgamma.logpdf(Kv_prev, alpha, loc=0, scale=beta)
+                 lognorm.logpdf(Kv_prev, scale=scale_kv, s=s_kv)
 
     for i in tqdm(range(N_samples), colour='WHITE', desc='Timesteps', ncols=150):
         # Proposal
@@ -136,7 +141,7 @@ def PMCMC(times, y_s, N_samples=1000):
         # Proposal log prior
         prior_prop = invgamma.logpdf(gamma_prop, alpha, loc=0, scale=beta) + \
                      invgamma.logpdf(v_prop, alpha, loc=0, scale=beta) + \
-                     invgamma.logpdf(Kv_prop, alpha, loc=0, scale=beta)
+                     lognorm.logpdf(Kv_prop, scale=scale_kv, s=s_kv)
 
         # Log acceptance probability
         lg_acc = min(0, ML_prop + prior_prop - ML_prev - prior_prev)
@@ -159,12 +164,9 @@ def PMCMC(times, y_s, N_samples=1000):
             Kvs.append(Kv_prev)
 
         if (i+1) % 10 == 0:
-            print('gamma\'s')
-            print(gammas)
-            print('v\'s')
-            print(vs)
-            print('Kv\'s')
-            print(Kvs)
-            print(f'{i+1}/{N_samples} samples, acceptance percentage = {round(100 * N_accepted / (i+1), 1)}')
+            with open('PMCMC_out.pickle', 'wb') as f:
+                pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
+            print(f'\n Current run: {i+1}/{N_samples} samples, acceptance percentage = '
+                  f'{round(100 * N_accepted / (i+1), 1)}. Total samples: {len(gammas)}')
 
     return gammas, vs, Kvs

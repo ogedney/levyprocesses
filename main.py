@@ -61,27 +61,39 @@ gamma = GammaProcess(gamma=g, v=v)
 
 nvm = NVMProcess(subordinator=gamma, mu_w=mu_w, sigma_w=sigma_w)
 
-y, t, y_s, times = get_observations(process=nvm, noise_sd=noise_sd, n_observed=n_observed, load_data=True)
+# y, t, y_s, times = get_observations(process=nvm, noise_sd=noise_sd, n_observed=n_observed, load_data=True)
 
-# [8202.779762878426, 8118.994536975091, 8127.350990219695, 8143.481871596601, 8260.654210902381, 8165.107988942243,
-# 8279.480686052517, 8260.595306346833, 8305.05922390013, 8317.305209209157]
-
-marginal_likelihood = run_particle_filter(subordinator=gamma, times=times, y_s=y_s, t=t, y=y, noise_sd=noise_sd,
-                                          sigma_w=sigma_w, use_prior=use_prior, n_particles=n_particles,
-                                          show_plots=True, nvm=True)
-
-print(f'Marginal likelihood = {round(marginal_likelihood, 1)}')
+# marginal_likelihood = run_particle_filter(subordinator=gamma, times=times, y_s=y_s, t=t, y=y, noise_sd=noise_sd,
+#                                           sigma_w=sigma_w, use_prior=use_prior, n_particles=n_particles,
+#                                           show_plots=True, nvm=True)
+#
+# print(f'Marginal likelihood = {round(marginal_likelihood, 1)}')
 
 # grid_search(times, y_s, gammas=[0.01, 0.14, 1.41, 10, 100], vs=[0.02, 0.2, 2, 10, 100],
 #             noise_sd=noise_sd, sigma_w=sigma_w, use_prior=True)
 
-with open('PMCMC_in.pickle', 'wb') as f:
-    pickle.dump((times, y_s), f, pickle.HIGHEST_PROTOCOL)
+# with open('PMCMC_in.pickle', 'wb') as f:
+#     pickle.dump((times, y_s), f, pickle.HIGHEST_PROTOCOL)
 
-gammas = [2**0.5]
-vs = [2]
-Kvs = [0.04]
-with open('PMCMC_out.pickle', 'wb') as f:
-    pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
+with open('PMCMC_in.pickle', 'rb') as f:
+    times, y_s = pickle.load(f)
 
-# gs, vs, Kvs = PMCMC(times, y_s)
+# gammas = [2**0.5]
+# vs = [2]
+# Kvs = [0.04]
+# with open('PMCMC_out.pickle', 'wb') as f:
+#     pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
+
+# with open('PMCMC_out.pickle', 'rb') as f:
+#     gammas, vs, Kvs = pickle.load(f)
+#
+# plt.hist(gammas)
+# plt.show()
+#
+# plt.hist(vs)
+# plt.show()
+#
+# plt.hist(Kvs)
+# plt.show()
+
+gs, vs, Kvs = PMCMC(times, y_s)
