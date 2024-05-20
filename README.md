@@ -1,6 +1,6 @@
-Code for 4th year project (Non-Gaussian L\'evy Process Theory)
+Code for 4th year project (Non-Gaussian Levy Process Theory)
 
-Includes code for simulating gamma, tempered stable and stable subordinator processes as well as NVM and N$\sigmaM processes. 
+Includes code for simulating gamma, tempered stable and stable subordinator processes as well as NVM and N$\sigma$M processes. 
 
 Has marginalised particle filter implementation, with inference for $\mu_w$ and $\sigma_w$ alongside marginal likelihood calculation.
 
@@ -15,6 +15,6 @@ main.py runs code written in the other files
 
 plotting.py contains functions for making relevant graphs
 
-processes.py contains classes for simulating L\'evy processes
+processes.py contains classes for simulating Levy processes
 
 By Olly Gedney (og288)
