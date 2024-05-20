@@ -1,6 +1,6 @@
 Code for 4th year project (Non-Gaussian Levy Process Theory)
 
-Includes code for simulating gamma, tempered stable and stable subordinator processes as well as NVM and N $\sigma$ M processes. 
+Includes code for simulating gamma, tempered stable and stable subordinator processes as well as NVM and N $\sigma$M processes. 
 
 Has marginalised particle filter implementation, with inference for $\mu_w$ and $\sigma_w$ alongside marginal likelihood calculation.
 
