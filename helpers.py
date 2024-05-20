@@ -12,13 +12,13 @@ def get_observations(process, noise_sd=0.1, n_observed=200, seed=None, save_data
     rng = np.random.default_rng(seed=seed)
     inds = sorted(rng.choice(len(y), size=n_observed, replace=False))
     if load_data:
-        with open('y_t.pickle', 'rb') as f:
+        with open('data/y_t.pickle', 'rb') as f:
             y, t = pickle.load(f)
     times = t[inds]  # Observed time series
     y_s = y[inds] + rng.normal(loc=0, scale=noise_sd, size=n_observed)
 
     if save_data:
-        with open('y_t.pickle', 'wb') as f:
+        with open('data/y_t.pickle', 'wb') as f:
             pickle.dump((y, t), f, pickle.HIGHEST_PROTOCOL)
 
         plt.plot(t, y)
@@ -94,7 +94,7 @@ def PMCMC(times, y_s, N_samples=1000):
 
     times, y_s are observations"""
 
-    with open('PMCMC_out.pickle', 'rb') as f:
+    with open('data/PMCMC_out.pickle', 'rb') as f:
         gammas, vs, Kvs = pickle.load(f)
 
     # Initialise parameters
@@ -164,7 +164,7 @@ def PMCMC(times, y_s, N_samples=1000):
             Kvs.append(Kv_prev)
 
         if (i+1) % 10 == 0:
-            with open('PMCMC_out.pickle', 'wb') as f:
+            with open('data/PMCMC_out.pickle', 'wb') as f:
                 pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
             print(f'\n Current run: {i+1}/{N_samples} samples, acceptance percentage = '
                   f'{round(100 * N_accepted / (i+1), 1)}. Total samples: {len(gammas)}')

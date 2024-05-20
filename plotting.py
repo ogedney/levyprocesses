@@ -1,3 +1,4 @@
+from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
@@ -38,20 +39,20 @@ def generate_and_save_mixture_samples():
     sub = TemperedStableProcess()
     nvm = NVMProcess(subordinator=sub, mu_w=1, sigma_w=1)
     NVM_vals = nvm.get_n_final_values(10 ** 5)
-    with open('nvm_vals.pickle', 'wb') as f:
+    with open('data/nvm_vals.pickle', 'wb') as f:
         pickle.dump(NVM_vals, f, pickle.HIGHEST_PROTOCOL)
 
     nsm = NsigmaMProcess(subordinator=sub, mu_w=1, sigma_w=1)
     NSM_vals = nsm.get_n_final_values(10 ** 5)
-    with open('nsm_vals.pickle', 'wb') as f:
+    with open('data/nsm_vals.pickle', 'wb') as f:
         pickle.dump(NSM_vals, f, pickle.HIGHEST_PROTOCOL)
 
 
 def plot_mixture_samples():
-    with open('nvm_vals.pickle', 'rb') as f:
+    with open('data/nvm_vals.pickle', 'rb') as f:
         nvm_vals = pickle.load(f)
 
-    with open('nsm_vals.pickle', 'rb') as f:
+    with open('data/nsm_vals.pickle', 'rb') as f:
         nsm_vals = pickle.load(f)
 
     bins = np.linspace(-3, 8, 150)
@@ -88,7 +89,7 @@ def get_samples_survival_series(final_values):
 
 
 def plot_tail_comparison_nvm_gamma():
-    with open('nvm_vals.pickle', 'rb') as f:
+    with open('data/nvm_vals.pickle', 'rb') as f:
         nvm_vals = pickle.load(f)
 
     x, y = get_samples_survival_series(nvm_vals)
@@ -146,7 +147,7 @@ def plot_bound_with_s_nvm_gamma():
 
 def plot_tail_comparison_nsm_mu_w_0():
     """Plot comparison to bound for NσM process with mu_w = 0"""
-    with open('nsm_vals.pickle', 'rb') as f:
+    with open('data/nsm_vals.pickle', 'rb') as f:
         nsm_vals = pickle.load(f)
 
     x, y = get_samples_survival_series(nsm_vals)
@@ -179,7 +180,7 @@ def plot_tail_comparison_nsm_mu_w_0():
 
 
 def plot_tail_comparison_nvm_TS():
-    with open('nvm_vals.pickle', 'rb') as f:
+    with open('data/nvm_vals.pickle', 'rb') as f:
         nvm_vals = pickle.load(f)
 
     x, y = get_samples_survival_series(nvm_vals)
@@ -346,3 +347,74 @@ def plot_mu_w_posterior_sigma_w_known(omegas, m_s, c_s, n_points=100):
     plt.xlabel('mu_w')
     plt.show()
 
+
+def plot_PMCMC_histograms():
+    g = 2**0.5
+    v = 2
+
+    with open('data/PMCMC_out.pickle', 'rb') as f:
+        gammas, vs, Kvs = pickle.load(f)
+
+    bins = np.logspace(-1, 1, 20)
+    plt.hist(gammas, bins=bins, density=True)
+    plt.plot(g * np.ones(100), np.linspace(0, 0.6, 100), label='$\gamma = \sqrt{2}$')
+    plt.legend()
+    plt.xscale('log')
+    plt.xlabel('$\gamma$')
+    plt.ylabel('Histogram density')
+    plt.show()
+
+    bins = np.logspace(-1, 2, 20)
+    plt.hist(vs, bins=bins, density=True)
+    plt.plot(v * np.ones(100), np.linspace(0, 0.2, 100), label='$\\nu = 2$')
+    plt.legend()
+    plt.xscale('log')
+    plt.xlabel('$\\nu$')
+    plt.ylabel('Histogram density')
+    plt.show()
+
+    bins = np.logspace(-3, 0, 20)
+    plt.hist(Kvs, bins=bins, density=True)
+    plt.plot(0.04 * np.ones(100), np.linspace(0, 15, 100), label='$\kappa_v = 0.04$')
+    plt.legend()
+    plt.xscale('log')
+    plt.xlabel('$\kappa_v$')
+    plt.ylabel('Histogram density')
+    plt.show()
+
+    s = 0
+    for i in range(len(gammas) - 1):
+        if gammas[i] != gammas[i + 1]:
+            s += 1
+    acc = s / (len(gammas) - 1)
+
+    print(f'Acceptance rate: {round(100 * acc, 2)} %')
+    print(max(vs))
+
+
+def plot_PMCMC_path():
+    N_samples = 200
+
+    with open('data/PMCMC_out.pickle', 'rb') as f:
+        gammas, vs, Kvs = pickle.load(f)
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot3D(np.log10(gammas[:N_samples]), np.log10(vs[:N_samples]), np.log10(Kvs[:N_samples]))
+
+    ax.set_xlabel('$\gamma$')
+    ax.set_ylabel('$\\nu$')
+    ax.set_zlabel('$\kappa_v$')
+    import matplotlib.ticker as mticker
+
+    # Log scale
+    def log_tick_formatter(val, pos=None):
+        return f"$10^{{{round(val, 1)}}}$"
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
+    ax.zaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
+    ax.zaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+
+
+
+    plt.show()

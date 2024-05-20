@@ -75,7 +75,7 @@ nvm = NVMProcess(subordinator=gamma, mu_w=mu_w, sigma_w=sigma_w)
 # with open('PMCMC_in.pickle', 'wb') as f:
 #     pickle.dump((times, y_s), f, pickle.HIGHEST_PROTOCOL)
 
-with open('PMCMC_in.pickle', 'rb') as f:
+with open('data/PMCMC_in.pickle', 'rb') as f:
     times, y_s = pickle.load(f)
 
 # gammas = [2**0.5]
@@ -84,31 +84,10 @@ with open('PMCMC_in.pickle', 'rb') as f:
 # with open('PMCMC_out.pickle', 'wb') as f:
 #     pickle.dump((gammas, vs, Kvs), f, pickle.HIGHEST_PROTOCOL)
 
-with open('PMCMC_out.pickle', 'rb') as f:
+with open('data/PMCMC_out.pickle', 'rb') as f:
     gammas, vs, Kvs = pickle.load(f)
 
-bins = np.logspace(-1, 1, 20)
-plt.hist(gammas, bins=bins, density=True)
-plt.plot(g*np.ones(100), np.linspace(0, 0.6, 100))
-plt.xscale('log')
-plt.xlabel('$\gamma$')
-plt.ylabel('Histogram density')
-plt.show()
-
-bins = np.logspace(-1, 2, 20)
-plt.hist(vs, bins=bins, density=True)
-plt.plot(v*np.ones(100), np.linspace(0, 0.2, 100))
-plt.xscale('log')
-plt.xlabel('$\\nu$')
-plt.ylabel('Histogram density')
-plt.show()
-
-bins = np.logspace(-3, 0, 20)
-plt.hist(Kvs, bins=bins, density=True)
-plt.plot(0.04*np.ones(100), np.linspace(0, 20, 100))
-plt.xscale('log')
-plt.xlabel('$\kappa_v$')
-plt.ylabel('Histogram density')
-plt.show()
+# plot_PMCMC_histograms()
+plot_PMCMC_path()
 
 # gs, vs, Kvs = PMCMC(times, y_s)
