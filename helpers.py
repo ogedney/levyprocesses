@@ -46,11 +46,9 @@ def run_particle_filter(subordinator, times, y_s, t=None, y=None, noise_sd=0.1, 
     if show_plots:
         if use_prior:
             plot_sigma_w_2_posterior(omegas, alphas_dash, betas_dash)
-
             plot_mu_w_posterior(omegas, ms, cs, alphas_dash, betas_dash)
         else:
             plot_mu_w_posterior_sigma_w_known(omegas, ms, cs)
-
         plot_particles(times, p_filter.history, y_s, t, y)
 
     return p_filter.marginal_likelihood()
@@ -58,10 +56,6 @@ def run_particle_filter(subordinator, times, y_s, t=None, y=None, noise_sd=0.1, 
 
 def grid_search(ts, ys, gammas, vs, noise_sd=0.1, sigma_w=1, use_prior=True):
     """Run grid search with a gamma subordinator."""
-    # pairs = []
-    # for g in gammas:
-    #     for v in vs:
-    #         pairs.append((g, v))
     likelihoods = np.zeros((len(vs), len(gammas)))
 
     for i, v in enumerate(vs):
@@ -73,7 +67,6 @@ def grid_search(ts, ys, gammas, vs, noise_sd=0.1, sigma_w=1, use_prior=True):
             print(f'\n v = {v}, gamma = {g}, ML = {ml}')
             likelihoods[i, j] = ml
 
-    # likelihoods = likelihoods.reshape((len(vs), len(gammas)))
     plt.imshow(likelihoods)
     plt.colorbar()
     plt.yticks(np.arange(len(vs)), labels=vs)
@@ -105,12 +98,10 @@ def PMCMC(times, y_s, N_samples=1000):
     lg_v_prev = np.log(v_prev)
     lg_Kv_prev = np.log(Kv_prev)
     subordinator = GammaProcess(gamma=gamma_prev, v=v_prev)
-    # gammas = []
-    # vs = []
-    # Kvs = []
+
     alpha = 0.4  # Parameters for inverse gamma prior
     beta = 1
-    scale_kv = 0.04*2
+    scale_kv = 0.04*2  # Parameters for lognormal prior
     s_kv = 0.5*np.log(10)
     step_size = 0.33 * np.log(10)
     N_accepted = 0

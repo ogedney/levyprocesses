@@ -10,7 +10,8 @@ class ParticleFilter:
     """Marginalised particle filter for NVM an NsigmaM processes observed in Gaussian noise.
     mu_w is incorporated into the state vector, sigma_w is factorised out."""
 
-    def __init__(self, subordinator, N=10 ** 3, sigma_w=None, mu_mu_w=0, Kw=1, Kv=0.1, alpha_w=10**-6, beta_w=10**-6, is_NVM=True, seed=None, show_bar=True):
+    def __init__(self, subordinator, N=10 ** 3, sigma_w=None, mu_mu_w=0, Kw=1, Kv=0.1, alpha_w=10**-6, beta_w=10**-6,
+                 is_NVM=True, seed=None, show_bar=True):
         # Parameters
         self.N = N  # Number of particles
         self.sigma_w = sigma_w  # Sigma_w (None for model with prior, positive real otherwise)
@@ -49,6 +50,7 @@ class ParticleFilter:
         y_values = np.insert(y_values, 0, 0)  # Start from y = 0
         inferred_means = np.zeros(len(times))
 
+        # Iterate over timesteps
         for j in tqdm(range(1, len(times)), colour='WHITE', desc='Timesteps', ncols=150, disable=self.disable_bar):
             # Resample
             inds = self.rng.choice(self.N, size=self.N, p=self.omegas)  # Sample with replacement
@@ -59,7 +61,10 @@ class ParticleFilter:
             self.sum_exp_bits = self.sum_exp_bits[inds]
 
             self.history = np.concatenate((self.history, self.a_s[0, :].reshape(1, self.N)), axis=0)
+
+            # Iterate over particles
             for i in range(self.N):
+                # Get previous Kalman mean and covariance for particle
                 a = np.reshape(self.a_s[:, i], (2, 1))
                 C_tilde = self.C_s[:, :, i]
 
@@ -81,17 +86,16 @@ class ParticleFilter:
                               [0]])
                 C = np.array([[1, 0]])
 
-                # (1)
+                # (1) Prediction step
                 a_ii1 = Ai @ a
                 C_ii1 = Ai @ C_tilde @ Ai.T + C_e * B @ B.T
 
-                # (2)
-                # From Cappe, Godsill, Moulines
+                # (2) Correction step
                 K_t = C_ii1 @ C.T / (C @ C_ii1 @ C.T + self.Kv)
                 a_ii = a_ii1 + K_t * (y_values[j] - C @ a_ii1)
                 C_ii = (np.identity(2) - K_t @ C) @ C_ii1
 
-                # (3)
+                # (3) Prediction error decomposition
                 y_hat = (C @ a_ii1)[0][0]
                 F_i = (C @ C_ii1 @ C.T + self.Kv)[0][0]
 
@@ -101,21 +105,14 @@ class ParticleFilter:
                 # The rest:
                 log_bit = - 0.5 * np.log(2 * np.pi) - 0.5 * np.log(F_i)
 
-                # Marginal likelihood
-                # log_likelihood(n,t)=sum(log_bit_like(n,:))+alpha_W*log(beta_W)-(alpha_W+t/2)*log(beta_W-
-                # sum(exp_bit_like(n,:)))+gammaln(t/2+alpha_W)-gammaln(alpha_W);
-                # marginal_likelihood = self.sum_log_bits[i] + log_bit + self.alpha_w * np.log(self.beta_w) - \
-                #                       (self.alpha_w + (j+1)/2) * np.log(self.beta_w - self.sum_exp_bits[i] - exp_bit) + \
-                #                       scipy.special.loggamma((j+1)/2 + self.alpha_w) - \
-                #                       scipy.special.loggamma(self.alpha_w)
-
                 # Incremental likelhood
-                # log p(y_n | y_1:n-1) = log p(y_1:n) - log p(y_1:n-1)
+                # log p(y_n | y_1:n-1, jumps) = log p(y_1:n | jumps) - log p(y_1:n-1 | jumps)
                 inc_likelihood = log_bit - (self.alpha_w + (j+1)/2)*np.log(self.beta_w - self.sum_exp_bits[i]-exp_bit) \
                                  + (self.alpha_w + j/2)*np.log(self.beta_w - self.sum_exp_bits[i]) + \
                                  scipy.special.loggamma((j+1)/2 + self.alpha_w) - \
                                  scipy.special.loggamma(j/2 + self.alpha_w)
 
+                # Update Kalman means and covariances
                 self.a_s[:, i] = a_ii.flatten()
                 self.C_s[:, :, i] = C_ii
                 self.sum_log_bits[i] += log_bit
@@ -123,7 +120,6 @@ class ParticleFilter:
 
                 # Store log weights initially
                 if self.sigma_w:
-                    # self.omegas[i] = scipy.stats.norm.logpdf(y_values[j], loc=y_hat, scale=self.sigma_w * F_i ** 0.5)
                     self.omegas[i] = log_bit - np.log(self.sigma_w) + exp_bit / self.sigma_w**2
                 else:
                     self.omegas[i] = inc_likelihood
@@ -168,17 +164,4 @@ class ParticleFilter:
         Without prior: p(y_1:n | sigma_w^2)
         With prior: p(y_1:n)
         """
-        out = 0
-        ps = np.exp(self.unnormalised)
-        if self.sigma_w:
-            for i in range(self.N):
-                out += ps[i] * (self.sum_log_bits[i] - self.M * np.log(self.sigma_w)
-                                         - self.sum_exp_bits[i] / self.sigma_w**2)
-        else:
-            for i in range(self.N):
-                out += ps[i] * self.unnormalised[i]
-                # out += ps[i] * (self.sum_log_bits[i] + self.alpha_w * np.log(self.beta_w)
-                #                          - (self.alpha_w + self.N/2) * np.log(self.beta_w - self.sum_exp_bits[i])
-                #                          + scipy.special.loggamma(self.N/2 + self.alpha_w)
-                #                          - scipy.special.loggamma(self.alpha_w))
         return self.ML

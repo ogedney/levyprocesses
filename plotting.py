@@ -63,20 +63,6 @@ def plot_mixture_samples():
 
     plt.title('Histograms of 10^5 NVM and NσM values at t = 1 (μ_w = 1, σ_w = 1)', wrap=True)
     plt.show()
-    # mu_w = 1
-    # sigma_w = 1
-    # lambda_ = 1
-    # gamma = 2
-    # M_1 = gamma / lambda_
-    # M_2 = gamma * 2 / lambda_ ** 2
-    # x = np.linspace(-3, 20, 10 ** 4)
-    # plt.plot(x, norm.pdf(x, loc=mu_w * M_1, scale=(mu_w ** 2 * M_2 + sigma_w ** 2 * M_1)**0.5),
-    #          label='Normal survival function')
-    #
-    # plt.xlabel('Final value')
-    # plt.ylabel('Normalised sample counts')
-    # # plt.ylim(0, 0.3)
-    # plt.show()
     
 
 def get_samples_survival_series(final_values):
@@ -123,8 +109,7 @@ def plot_tail_comparison_nvm_gamma():
 
 
 def plot_bound_with_s_nvm_gamma():
-    """Functions to help with plotting variation of bound with s"""
-
+    """Function to help with plotting variation of bound with s"""
     s = np.linspace(0, 1.5, 200)
     mu_w = 0
     sigma_w = 1
@@ -146,7 +131,7 @@ def plot_bound_with_s_nvm_gamma():
 
 
 def plot_tail_comparison_nsm_mu_w_0():
-    """Plot comparison to bound for NσM process with mu_w = 0"""
+    """Plot comparison to bound for NσM process with mu_w = 0 - doesn't converge"""
     with open('data/nsm_vals.pickle', 'rb') as f:
         nsm_vals = pickle.load(f)
 
@@ -279,17 +264,13 @@ def get_x_and_y(times, history):
 def plot_particles(times, history, observed, t, y_true, log=True):
     xedges, yedges = get_edges(times, y_true)
     x, y = get_x_and_y(times, history)
-    # print(xedges)
-    # print(yedges)
-    # print(x)
-    # print(y)
     H, xedges, yedges = np.histogram2d(x, y, bins=(xedges, yedges))
     H = H.T
-    # print(H)
+
     if log:
         H = np.log(H)
     X, Y = np.meshgrid(xedges, yedges)
-    # print(H)
+
     plt.pcolormesh(X, Y, H, cmap='Greens')
     plt.plot(t, y_true, label='True process', color='blue')
     plt.scatter(times, observed, label='Observed process', color='orange')
@@ -305,7 +286,6 @@ def plot_sigma_w_2_posterior(omegas, alphas_dash, betas_dash, n_points=500):
     y = np.zeros(n_points)
     for i in range(len(omegas)):
         y += omegas[i] * invgamma.pdf(x, a=alphas_dash[i], scale=betas_dash[i])
-    # y += invgamma.pdf(x, a=alphas_dash[0], scale=betas_dash[0])
     plt.plot(x, y)
     # plt.title(f'mean alpha\' = {np.mean(alphas_dash[0])}, mean beta\' = {np.mean(betas_dash[0])}')
     # plt.title('Posterior distribution of mu_w')
@@ -414,7 +394,5 @@ def plot_PMCMC_path():
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
     ax.zaxis.set_major_formatter(mticker.FuncFormatter(log_tick_formatter))
     ax.zaxis.set_major_locator(mticker.MaxNLocator(integer=True))
-
-
 
     plt.show()

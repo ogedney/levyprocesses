@@ -1,40 +1,9 @@
-"""Initial script to familiarise myself with the models.
-Aims: generate sample paths for truncated normal-Gamma process,
-then to build histogram of samples to compare to true density.
-
-Next:
-- compare histogram to gamma density
-- generate normal-Gamma sample paths
-- generate NsigmaM sample paths
-"""
-
 from processes import *
 from plotting import *
 from filter import *
 from helpers import *
 from tqdm import tqdm
 import warnings
-
-# warnings.filterwarnings('ignore')
-
-# ng = NVMProcess(subordinator=GammaProcess(), mu_w=1, sigma_w=1)
-# ng = NsigmaMProcess(subordinator=TemperedStableProcess(alpha=0.5, beta=1, C=1), mu_w=1, sigma_w=1)
-# ng = GammaProcess()
-# plot_n_paths(ng, 10)
-# plot_hist_of_n(ng, 10**4)
-
-# plot_hist_of_n(ng, 10**5, bins=100)
-
-
-# stable = StableProcess()
-# plot_n_paths(stable, 10)
-
-# generate_and_save_mixture_samples()
-# plot_mixture_samples()
-# plot_tail_comparison_nsm_mu_w_0()
-
-# plot_tail_comparison_nvm()
-# plot_bound_with_s()
 
 # ----------------------------------------------------------------------
 # Control panel
@@ -53,11 +22,6 @@ use_prior = True        # Use sigma_w^2 prior
 gamma = GammaProcess(gamma=g, v=v)
 # gamma = TemperedStableProcess()
 # plot_n_paths(gamma, 10)
-
-# generate_and_save_mixture_samples()
-# plot_mixture_samples()
-# plot_tail_comparison_nvm_TS()
-# plot_bound_with_s_nvm_TS()
 
 nvm = NVMProcess(subordinator=gamma, mu_w=mu_w, sigma_w=sigma_w)
 
